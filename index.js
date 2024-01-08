@@ -2,21 +2,24 @@ const fs = require('fs');
 
 const stepTime = 0.03;            //change the precision of the simulation, lower is more  precise. seconds/step
 const mass = 10;                  //Kg - doesn't matter for this version
-const surfaceEnergyReturn = 0.600;//how much of the velocity is maintained when a bouncing
+const surfaceEnergyReturn = 0.65;  //how much of the velocity is maintained when a bouncing
 const gravity = 9.8;              //gravity in m/s^2
-const speedRegulation = 20;       //limit the speed of the simulation - zero for no regulation
+const speedRegulation = 20;     //limit the speed of the simulation - zero for no regulation
 const totalStepGoal = 40000;      //total number of steps to be done if the useElimit is false
-const startPosition = 10          //starting height
-const lowerElimit = 10;           //the energy level to reach to end the simulation if useElimit is true
+const startPosition = 20          //starting height
+const lowerElimit = 10;            //the energy level to reach to end the simulation if useElimit is true
 const useElimit = true;           //weather use the energy level or step count as a way to stop the simulation
 const doDraw = true;              //weather to draw the object on the terminal
-const drawingScale = 6            //to scale the drawing (used to prevent the object from going to the next line of the terminal)
+const drawingScale = 5            //to scale the drawing (used to prevent the object from going to the next line of the terminal)
 const reportE = true;             //weather to report the E value of the object in the terminal
 const reportX = true;             //weatehr to report the X value of the object in the terminal
 const reportV = true;             //weatehr to report the V value of the object in the terminal
 const recordHistory = true        //weather to make files
-const startingVelocity = 0        //starting velocity (negative is downwards)
+const startingVelocity = 10        //starting velocity (negative is downwards)
 const historySeparator = "\n"     //character to separate values whilst saving the history
+
+const creatUpperWall = false
+const upperWallPosition = 40
 
 const startTime = Date.now();    
 var xhistory = [];               //used to store the x values separately to prevent the proccess of storing them to slow the simulation down 
@@ -57,6 +60,10 @@ function step(x, V, fr, g, t){
             V = -V * fr;
             bounce += 1;
         }
+        if((x + (V * t)) > upperWallPosition && creatUpperWall){
+            V = -V * fr;
+            bounce += 1;
+        }
         x = x + (V * t);
 
         return [x, V];
@@ -67,7 +74,7 @@ function draw(position, V, scale){
     var plot = "";
     if(V < 0){
         for(var i=0; i<emptySpaces; i+=1){
-            if(i >= (position + V/scale)*scale) plot += "<";
+            if(i+1 >= (position + V/scale)*scale) plot += "<";
             else plot += " ";
         }
         plot += "X"
