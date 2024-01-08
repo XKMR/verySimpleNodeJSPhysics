@@ -5,9 +5,14 @@ const surfaceEnergyReturn = 0.8;
 const gravity = 9.8;
 const speedRegulation = 0; //zero for no regulation
 const startTime = Date.now();
-const totalStepGoal = 4000;
-const stepTime = 0.01 //second
+const totalStepGoal = 40000;
+const stepTime = 0.01 // second/step
 const startPosition = 100
+const lowerElimit = 1;
+const useElimit = true;
+const doDraw = true;
+const reportE = true;
+const reportX = true;
 var xhistory = [];
 var Ehistory = [];
 var x = 0;
@@ -69,16 +74,18 @@ setInterval(function(){
     xhistory[x] = position;
     x += 1;
 
-    if(x == totalStepGoal){
+    if(x == totalStepGoal && useElimit == false){
+        end(xhistory);
+    }
+    if(Math.round(E) == lowerElimit && useElimit == true){
         end(xhistory);
     }
 
-
     console.clear();
-    console.log(generateBar(x, totalStepGoal, 60)+x+"/"+totalStepGoal);
-    console.log(draw(position, startPosition, 1));
-    console.log(`x = ${position}`)
-    console.log(`E = ${E}`);
+    if(!useElimit) console.log(generateBar(x, totalStepGoal, 60)+x+"/"+totalStepGoal);
+    if(doDraw) console.log(draw(position, startPosition, 1));
+    if(reportX) console.log(`x = ${position}`)
+    if(reportE) console.log(`E = ${E}`);
 
 },speedRegulation)//step time
 
