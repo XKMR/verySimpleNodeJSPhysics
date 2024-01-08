@@ -1,20 +1,22 @@
 const fs = require('fs');
 
-const mass = 10;                 //Kg - doesn't matter for this version
-const surfaceEnergyReturn = 0.7; //how much of the velocity is maintained when a bouncing
-const gravity = 9.8;             //gravity in m/s^2
-const speedRegulation = 10;      //limit the speed of the simulation - zero for no regulation
-const totalStepGoal = 40000;     //total number of steps to be done if the useElimit is false
-const stepTime = 0.016           //change the precision of the simulation, lower is more  precise. seconds/step
-const startPosition = 3          //starting height
-const lowerElimit = 1;           //the energy level to reach to end the simulation if useElimit is true
-const useElimit = true;          //weather use the energy level or step count as a way to stop the simulation
-const doDraw = true;             //weather to draw the object on the terminal
-const drawingScale = 6           //to scale the drawing (used to prevent the object from going to the next line of the terminal)
-const reportE = true;            //weather to report the E value of the object in the terminal
-const reportX = true;            //weatehr to report the X value of the object in the terminal
-const reportV = true;            //weatehr to report the V value of the object in the terminal
-const startingVelocity = 0       //starting velocity (negative is downwards)
+const stepTime = 0.03;            //change the precision of the simulation, lower is more  precise. seconds/step
+const mass = 10;                  //Kg - doesn't matter for this version
+const surfaceEnergyReturn = 0.500;  //how much of the velocity is maintained when a bouncing
+const gravity = 9.8;              //gravity in m/s^2
+const speedRegulation = 20;     //limit the speed of the simulation - zero for no regulation
+const totalStepGoal = 40000;      //total number of steps to be done if the useElimit is false
+const startPosition = 10          //starting height
+const lowerElimit = 3;            //the energy level to reach to end the simulation if useElimit is true
+const useElimit = true;           //weather use the energy level or step count as a way to stop the simulation
+const doDraw = true;              //weather to draw the object on the terminal
+const drawingScale = 6            //to scale the drawing (used to prevent the object from going to the next line of the terminal)
+const reportE = true;             //weather to report the E value of the object in the terminal
+const reportX = true;             //weatehr to report the X value of the object in the terminal
+const reportV = true;             //weatehr to report the V value of the object in the terminal
+const recordHistory = true        //weather to make files
+const startingVelocity = 0        //starting velocity (negative is downwards)
+const historySeparator = "\n"     //character to separate values whilst saving the history
 
 const startTime = Date.now();    
 var xhistory = [];               //used to store the x values separately to prevent the proccess of storing them to slow the simulation down 
@@ -60,50 +62,71 @@ function step(x, V, fr, g, t){
         return [x, V];
 }
 
-function draw(position, scale){
+function draw(position, V, scale){
     var emptySpaces = Math.round((position*scale)-1);
     var plot = "";
-    for(var i=0; i<emptySpaces; i+=1){
-        plot += " ";
+    if(V < 0){
+        for(var i=0; i<emptySpaces; i+=1){
+            if(i >= (position + V)*scale) plot += "<";
+            else plot += " ";
+        }
+        plot += "X"
+    }else if(V > 0){
+        for(var i=0; i<emptySpaces; i+=1){
+            plot += " ";
+        }
+        plot += "X"
+        for(i; i-V<emptySpaces; i+=1){
+            plot += ">";
+        }
     }
-    return plot + "X"
+    return plot
 }
 
 setInterval(function(){
     [position, velocity] = step(position, velocity, surfaceEnergyReturn, gravity, stepTime)
-    E = (position*mass*gravity)+(mass*velocity*velocity*(1/2));
-    Ehistory[x] = E;
-    Vhistory[x] = velocity;
-    xhistory[x] = position;
+    if(reportE) E = (position*mass*gravity)+(mass*velocity*velocity*(1/2));
+    if(recordHistory){
+        Ehistory[x] = E;
+        Vhistory[x] = velocity;
+        xhistory[x] = position;
+    }
     x += 1;
+    
 
     if(x == totalStepGoal && useElimit == false){
         end(xhistory);
     }
-    if(Math.round(E) == lowerElimit && useElimit == true){
+    if(Math.round(E) <= lowerElimit && useElimit == true){
         end(xhistory);
     }
 
     console.clear();
     if(!useElimit) console.log(generateBar(x, totalStepGoal, 60)+x+"/"+totalStepGoal);
-    if(doDraw) console.log(draw(position, drawingScale));
-    if(reportX) console.log(`x = ${Math.round(position*10)/10}`)
-    if(reportV) console.log(`V = ${Math.round(velocity*10)/10}`);
-    if(reportE) console.log(`E = ${Math.round(E*10)/10}`);
+    if(doDraw) console.log(draw(position, velocity, drawingScale));
+    if(reportX) console.log(`x = ${position}`)
+    if(reportV) console.log(`V = ${velocity}`);
+    if(reportE) console.log(`E = ${E}`);
 
 },speedRegulation)//step time
 
 function end(xhistory){
-    for(var n = 0; n <= xhistory.length-1; n+=1){
-        fs.appendFileSync('x.txt', `${xhistory[n]}\n`);
-        fs.appendFileSync('E.txt', `${Ehistory[n]}\n`);
-        fs.appendFileSync('V.txt', `${Vhistory[n]}\n`);
+    const endTime = Date.now();
+    if(recordHistory){
+        fs.writeFileSync("V.txt", Vhistory.join(historySeparator));
+        fs.writeFileSync("x.txt", xhistory.join(historySeparator));
+        fs.writeFileSync("E.txt", Ehistory.join(historySeparator));
     }
-    var totalTime = (Math.round((Date.now() - startTime)/100))/10;
+    var totalTime = (Math.round((endTime - startTime)/100))/10;
     console.log(`Simulation compelited`);
     console.log(`made ${x} steps in ${totalTime} seconds.`);
-    console.log(`average performance of ${(Math.round(n/totalTime*10))/10} steps/second`);
+    console.log(`each step was ${stepTime} seconds, the simulation was running at ${((x*stepTime)/totalTime)*100}% of irl speed`)
+    console.log(`average performance of ${(Math.round(x/totalTime*10))/10} steps/second`);
     console.log(`recorded ${bounce} bounces.`);
-    console.log("position data available at /x.txt");
-    process.exit();
+    if(recordHistory){
+        console.log("data exported to txt files");
+    }else{
+        console.log("no data was recorded, to enable: recordHistory = true")
+    }
+        process.exit();
 }
