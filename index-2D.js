@@ -1,15 +1,15 @@
 const fs = require('fs');
 
-const startingPosition = [2, 2]
-const startingVelocity = [10, 0]
+const startingPosition = [0, 25]
+const startingVelocity = [0, 25]
 const constantAcceleration = [0, 0]
 const wall = [50, 50]
 const gravity = 1.8;
 const useTotalGoal = false;
 const totalStepGoal = 800;     
 const surfaceEnergyReturn = 1
-const drawPointA = false;
-const pointA = [15, 15]
+const drawPointA = true;
+const pointA = [25, 25]
 const pointAStartingV = [0, 0];
 const pointAgMultiplier = 1;
 const fixA = false
@@ -81,7 +81,7 @@ function draw(position){
     for(var y=0; y <= wall[1]; y+=1){
         for(var x=0; x <= wall[0]; x+=1){
             if(Math.round(position[0]) == x && Math.round(position[1]) == y){
-                plot += "X";
+                plot += "█";
             }else if(Math.round(xA[0]) == x && Math.round(xA[1]) == y && drawPointA){
                 plot += "A"
             }else{
@@ -114,8 +114,13 @@ setInterval(function(){
         if(!fixA){
             aA[0] = -distanceToPointA[0];
             aA[1] = -distanceToPointA[1];
+            [xA, vA] = step(xA, vA, fr, aA, t);
+
+        }else{
+            aA = [0, 0];
+            vA = [0, 0];
+            xA = pointA;
         }
-        [xA, vA] = step(xA, vA, fr, aA, t);
     }
 
     x += 1;
