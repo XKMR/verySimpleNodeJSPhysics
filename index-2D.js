@@ -1,16 +1,18 @@
 const fs = require('fs');
 
 const startingPosition = [2, 2]
-const startingVelocity = [2, 3]
+const startingVelocity = [10, 0]
 const constantAcceleration = [0, 0]
-const wall = [100, 10]
-const gravity = 9.8;
-const useTotalGoal = true;
+const wall = [50, 50]
+const gravity = 1.8;
+const useTotalGoal = false;
 const totalStepGoal = 800;     
-const surfaceEnergyReturn = 0.8
+const surfaceEnergyReturn = 1
 const drawPointA = false;
-const pointA = [5, 5]
+const pointA = [15, 15]
+const pointAStartingV = [0, 0];
 const pointAgMultiplier = 1;
+const fixA = false
 const doDraw = true;
 const reportX = true
 const reportV = true
@@ -21,6 +23,9 @@ const stepTime = 0.03;
 const historySeparator = "\n"
 const startTime = Date.now();    
 
+var vA = pointAStartingV;
+var xA = pointA;
+var aA = [0, 0];
 var bounce = 0;
 var t = stepTime
 var fr = surfaceEnergyReturn
@@ -37,13 +42,7 @@ fs.writeFileSync("V2D.txt", "");
 
 function step(x, V, fr, a, t){
 
-    //distance to point A
-    
-    if(drawPointA){
-        var distanceToPointA = [(pointA[0]-position[0])*pointAgMultiplier, (pointA[1]-position[1])*pointAgMultiplier];
-        a = distanceToPointA;                                                                 //used for orbiting, fun stuff!                                                                  //used for orbiting, fun stuff!      
 
-    }
 
     V[0] = V[0] + (a[0] * t); //calculate new Vx
     V[1] = V[1] + (a[1] * t); //calculate new Vy
@@ -83,7 +82,7 @@ function draw(position){
         for(var x=0; x <= wall[0]; x+=1){
             if(Math.round(position[0]) == x && Math.round(position[1]) == y){
                 plot += "X";
-            }else if(Math.round(pointA[0]) == x && Math.round(pointA[1]) == y && drawPointA){
+            }else if(Math.round(xA[0]) == x && Math.round(xA[1]) == y && drawPointA){
                 plot += "A"
             }else{
                 plot += "=";
@@ -105,6 +104,20 @@ setInterval(function(){
         Vhistory[x] = JSON.stringify(velocity);
         xhistory[x] = JSON.stringify(position);
     }
+
+
+    //distance to point A
+    
+    if(drawPointA){
+        var distanceToPointA = [(xA[0]-position[0])*pointAgMultiplier, (xA[1]-position[1])*pointAgMultiplier];
+        acceleration = distanceToPointA;                                                                 //used for orbiting, fun stuff!                                                                  //used for orbiting, fun stuff!      
+        if(!fixA){
+            aA[0] = -distanceToPointA[0];
+            aA[1] = -distanceToPointA[1];
+        }
+        [xA, vA] = step(xA, vA, fr, aA, t);
+    }
+
     x += 1;
     if(x == totalStepGoal && useTotalGoal == true){
         end();
