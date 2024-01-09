@@ -1,16 +1,18 @@
 const fs = require('fs');
 
-const startingPosition = [0, 25]
-const startingVelocity = [0, 25]
+
+const mA_to_mX = 1.5
+const startingPosition = [25, 20]
+const startingVelocity = [50, 0]
 const constantAcceleration = [0, 0]
-const wall = [50, 50]
-const gravity = 1.8;
+const wall = [100, 50]
+const gravity = 9.8;
 const useTotalGoal = false;
 const totalStepGoal = 800;     
-const surfaceEnergyReturn = 1
+const surfaceEnergyReturn = 0.7
 const drawPointA = true;
 const pointA = [25, 25]
-const pointAStartingV = [0, 0];
+const pointAStartingV = [5, 0];
 const pointAgMultiplier = 1;
 const fixA = false
 const doDraw = true;
@@ -110,10 +112,12 @@ setInterval(function(){
     
     if(drawPointA){
         var distanceToPointA = [(xA[0]-position[0])*pointAgMultiplier, (xA[1]-position[1])*pointAgMultiplier];
-        acceleration = distanceToPointA;                                                                 //used for orbiting, fun stuff!                                                                  //used for orbiting, fun stuff!      
+        acceleration[0] = distanceToPointA[0]*mA_to_mX;     
+        acceleration[1] = distanceToPointA[1]*mA_to_mX;                                                                 //used for orbiting, fun stuff!                                                                  //used for orbiting, fun stuff!      
+                                                                //used for orbiting, fun stuff!      
         if(!fixA){
-            aA[0] = -distanceToPointA[0];
-            aA[1] = -distanceToPointA[1];
+            aA[0] = -distanceToPointA[0] * (1/mA_to_mX);
+            aA[1] = -distanceToPointA[1] * (1/mA_to_mX);
             [xA, vA] = step(xA, vA, fr, aA, t);
 
         }else{
