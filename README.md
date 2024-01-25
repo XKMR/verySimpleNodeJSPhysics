@@ -7,6 +7,7 @@ to use the web mode you have to set the "reportToWeb" to true, and it is recomme
 you can also change the characters used to draw to whatever you want.<br/>
 to access the output you need to run the file "SERVER/server.js"<br/>
 then you can go to the URL "localhost:3000", you can change the port by changing it in both of the JS files.
-# graphs generated using the output data
+# example
 <img src="example.gif" alt="Gif" height=500; width=500;><br/>
+# graphs generated using the output data
 <img src="screenshot1.png" alt="Screenshot">
